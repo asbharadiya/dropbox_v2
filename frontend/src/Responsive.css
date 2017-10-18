@@ -1,0 +1,56 @@
+@media screen and (max-width: 767px) { 
+
+}
+
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  
+}
+
+@media screen and (max-width: 991px) {
+	/*LANDING PAGE*/
+	.landing-page .page-content .landing-img-container img {
+  	width: 250px;
+  	height: 250px;
+	}
+	.landing-page .page-content .form-container {
+  	width: 300px;
+	}
+	/*DASHBOARD*/
+	.dashboard-page .sidebar-panel {
+		width: 200px;
+	}
+	.dashboard-page .page-content {
+		padding-left: 200px;
+	}
+	.dashboard-page .page-content header {
+		left: 200px;
+	}
+  	.dashboard-page .page-content .inner-page-content .right-content {
+	 	width: 200px;
+	  	flex: 0 0 200px;
+	}
+	.dashboard-page .page-content .inner-page-content .right-content .right-content-inner {
+	  	width: 160px;
+	}
+  	.dashboard-page .page-content .item-row .item-content .item-star button.not-star {
+    	opacity: 1;
+  	}
+  	.dashboard-page .page-content .item-row .item-options .dropdown .dropdown-toggle .btn {
+    	border: 1px solid #C1C7CD;
+  	}
+  	.dashboard-page .page-content .group-row .group-options .dropdown .dropdown-toggle .btn {
+    	border: 1px solid #C1C7CD;
+  	}
+}
+
+@media screen and (min-width: 992px) and (max-width: 1199px) {
+
+}
+
+@media screen and (max-width: 1199px) {
+	
+}
+
+@media screen and (min-width: 1200px) {
+	
+}
