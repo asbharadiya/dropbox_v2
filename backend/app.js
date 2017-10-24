@@ -81,14 +81,14 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-mongo.connect(mongoSessionURL, function(){
-  console.log('Connected to mongo at: ' + mongoSessionURL);
+//mongo.connect(mongoSessionURL, function(){
+  //console.log('Connected to mongo at: ' + mongoSessionURL);
   http.createServer(app).listen(app.get('port'), function(){
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
     console.log('Express server listening on port ' + app.get('port'));
   });
-});
+//});
 
 module.exports = app;

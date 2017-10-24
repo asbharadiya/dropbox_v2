@@ -1,4 +1,4 @@
-var mongo = require("./mongo");
+var kafka = require('./kafka/client');
 
 module.exports = function(passport) {
 	var module = {};
@@ -17,7 +17,7 @@ module.exports = function(passport) {
 	}
 
 	module.signup = function(req,res){
-		passport.authenticate('local-signup', function(err,user, info) {
+		passport.authenticate('local-signup', function(err,user) {
 			if(err) {
 	            return res.status(500).send();
 	        }
@@ -30,16 +30,12 @@ module.exports = function(passport) {
 	}
 
 	module.checkSession = function(req,res){
-		res.status(200).send({status:200,data:{uname:req.user.first_name+" "+req.user.last_name}});
+		res.status(200).send({status:200,data:{uname:req.user.uname}});
 	}
 
 	module.logout = function(req,res){
 		req.session.destroy();
     	res.status(200).send();
-	}
-
-	module.userProfile = function(req,res){
-		res.status(200).send({status:200,data:{first_name:req.user.first_name,last_name:req.user.last_name,email:req.user.email,date_of_birth:req.user.date_of_birth}});
 	}
 
 	return module;

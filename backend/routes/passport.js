@@ -1,8 +1,6 @@
 var LocalStrategy = require("passport-local").Strategy;
-var ObjectId = require('mongodb').ObjectId;
-
-var bcrypt = require('bcrypt');
-const saltRounds = 10;
+//var ObjectId = require('mongodb').ObjectId;
+var kafka = require('./kafka/client');
 
 var mongo = require("./mongo");
 
@@ -15,23 +13,24 @@ module.exports = function(passport) {
     }, function(username,password,done) {
         process.nextTick(function() {
             try {
-                mongo.getCollection('user', function(err,coll){
-                    coll.findOne({email:username}, function(err,user){
-                        if (user) {
-                            bcrypt.compare(password, user.password, function(err, result) {
-                                if(result) {
-                                    done(null,{_id:user._id});
-                                } else {
-                                    done(null,false);
-                                }
-                            });
-                        } else {
+                kafka.make_request('dropbox','signin',{
+                    email:username,
+                    password:password
+                },function(err,res){
+                    if(err){
+                        done(err);
+                    } else {
+                        if(res.code === 200){
+                            done(null,res.data);
+                        } else if(res.code === 401){
                             done(null,false);
+                        } else {
+                            done("Error");
                         }
-                    });
-                })
+                    }
+                });
             } catch (e) {
-                done(e,{});
+                done(e);
             }
         });
     }));
@@ -44,47 +43,43 @@ module.exports = function(passport) {
     }, function(req,username,password,done) {
         process.nextTick(function() {
             try {
-                mongo.getCollection('user', function(err,coll){
-                    coll.findOne({email:req.body.email}, function(err,user){
-                        if(err) {
-                            done(err);
-                        }
-                        if (user) {
+                kafka.make_request('dropbox','signup',{
+                    first_name:req.body.first_name,
+                    last_name:req.body.last_name,
+                    email: req.body.email,
+                    password:req.body.password,
+                    date_of_birth:req.body.date_of_birth
+                },function(err,res){
+                    if(err){
+                        done(err);
+                    } else {
+                        if(res.code === 200){
+                            done(null,res.data);
+                        } else if(res.code === 400){
                             done(null,false);
                         } else {
-                            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-                                coll.insert({first_name:req.body.first_name,
-                                    last_name:req.body.last_name,
-                                    email: req.body.email,
-                                    password:hash,
-                                    date_of_birth:new Date(req.body.date_of_birth)
-                                },function(err, user){
-                                    if (err) {
-                                        done(err);
-                                    } else {
-                                        done(null,{_id:user.insertedIds[0]});
-                                    }
-                                });
-                            });
+                            done("Error");
                         }
-                    });
-                })
+                    }
+                });
             } catch (e) {
-                done(e,{});
+                done(e);
             }
         });
     }));
 
     passport.serializeUser(function(user, done){
-        done(null, user._id);
+        // done(null, user._id);
+        done(null, user);
     })
 
     passport.deserializeUser(function(user, done){
-        mongo.getCollection('user', function(err,coll){
-            coll.findOne({"_id":ObjectId(user._id)}, function(err,user){
-                done(err, user);
-            });
-        })
+        // mongo.getCollection('user', function(err,coll){
+        //     coll.findOne({"_id":ObjectId(user._id)}, function(err,user){
+        //         done(err, user);
+        //     });
+        // })
+        done(null,user);
     })
 };
 
