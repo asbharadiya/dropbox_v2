@@ -1,8 +1,5 @@
 var LocalStrategy = require("passport-local").Strategy;
-//var ObjectId = require('mongodb').ObjectId;
 var kafka = require('./kafka/client');
-
-var mongo = require("./mongo");
 
 module.exports = function(passport) {
     //normal signin
@@ -20,13 +17,7 @@ module.exports = function(passport) {
                     if(err){
                         done(err);
                     } else {
-                        if(res.code === 200){
-                            done(null,res.data);
-                        } else if(res.code === 401){
-                            done(null,false);
-                        } else {
-                            done("Error");
-                        }
+                        done(null,res);
                     }
                 });
             } catch (e) {
@@ -47,19 +38,12 @@ module.exports = function(passport) {
                     first_name:req.body.first_name,
                     last_name:req.body.last_name,
                     email: req.body.email,
-                    password:req.body.password,
-                    date_of_birth:req.body.date_of_birth
+                    password:req.body.password
                 },function(err,res){
                     if(err){
                         done(err);
                     } else {
-                        if(res.code === 200){
-                            done(null,res.data);
-                        } else if(res.code === 400){
-                            done(null,false);
-                        } else {
-                            done("Error");
-                        }
+                        done(null,res);
                     }
                 });
             } catch (e) {
@@ -69,16 +53,10 @@ module.exports = function(passport) {
     }));
 
     passport.serializeUser(function(user, done){
-        // done(null, user._id);
         done(null, user);
     })
 
     passport.deserializeUser(function(user, done){
-        // mongo.getCollection('user', function(err,coll){
-        //     coll.findOne({"_id":ObjectId(user._id)}, function(err,user){
-        //         done(err, user);
-        //     });
-        // })
         done(null,user);
     })
 };

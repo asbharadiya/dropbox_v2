@@ -57,7 +57,7 @@ export const logout = () =>
         },
         credentials: 'include'
 	}).then(res => {
-		return res.json();
+		return res;
 	}).catch(error => {
         return error;
     });    

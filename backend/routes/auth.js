@@ -4,28 +4,26 @@ module.exports = function(passport) {
 	var module = {};
 
 	module.signin = function(req,res){
-		passport.authenticate('local-signin', function(err,user) {
+		passport.authenticate('local-signin', function(err,result) {
 	        if(err) {
 	            return res.status(500).send();
 	        }
-	        if(!user) {
-	            return res.status(401).send();
+	        if(result.code === 200) {
+	        	req.session.passport = {user: result.data};
 	        }
-	        req.session.passport = {user: user};
-	        return res.status(200).send();
+	        return res.status(result.code).send(result.message);
 	    })(req, res);
 	}
 
 	module.signup = function(req,res){
-		passport.authenticate('local-signup', function(err,user) {
+		passport.authenticate('local-signup', function(err,result) {
 			if(err) {
 	            return res.status(500).send();
 	        }
-	        if(!user) {
-	        	return res.status(400).send();
+	        if(result.code === 200) {
+	        	req.session.passport = {user: result.data};
 	        }
-	        req.session.passport = {user: user};
-	        return res.status(200).send();
+	        return res.status(result.code).send(result.message);
 	    })(req, res);
 	}
 
@@ -35,7 +33,7 @@ module.exports = function(passport) {
 
 	module.logout = function(req,res){
 		req.session.destroy();
-    	res.status(200).send();
+    	res.status(200).send('Success');
 	}
 
 	return module;

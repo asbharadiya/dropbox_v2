@@ -10,12 +10,6 @@ module.exports = function(router,passport) {
 	router.get('/api/check_session', isAuthenticated, auth.checkSession);
 	
 	function isAuthenticated(req, res, next) {
-		// use serialize and deserialize user of passport with db calls
-		// if(req.isAuthenticated()) {
-	    // 	 next();
-	  	// } else {
-		//	 res.status(401).send();
-		// }
 		if(req.session.passport && req.session.passport.user._id) {
 			next();
 	  	} else {
