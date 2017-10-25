@@ -64,7 +64,8 @@ function signup(msg, callback){
                                 first_name:msg.first_name,
                                 last_name:msg.last_name,
                                 email: msg.email,
-                                password:hash
+                                password:hash,
+                                is_verified:true
                             },function(err, user){
                                 if (err) {
                                     res.code = 500;
@@ -73,6 +74,7 @@ function signup(msg, callback){
                                     res.code = 200;
                                     res.message = "Success";
                                     res.data = {_id:user.insertedIds[0],uname:msg.first_name+" "+msg.last_name};
+                                    //TODO add user activity
                                 }
                                 callback(null, res);
                             });

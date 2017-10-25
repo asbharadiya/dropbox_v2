@@ -49,7 +49,7 @@ class GroupRow extends Component {
 
   deleteGroup(){
     //delete group
-    this.props.deleteGroup(this.props.group.id);
+    this.props.deleteGroup(this.props.group._id);
   }
 
   updateGroup(){
@@ -57,7 +57,7 @@ class GroupRow extends Component {
         groupNameError: ""
     });
     if(this.state.name !== '') {
-      this.props.updateGroup(this.state.name,this.props.group.id);
+      this.props.updateGroup(this.state.name,this.props.group._id);
     } else {
       this.setState({
         groupNameError: "Please enter group name"
@@ -66,21 +66,10 @@ class GroupRow extends Component {
   }
 
   componentWillReceiveProps(nextProps){
-    if(nextProps.getGroupByIdData === undefined || nextProps.getGroupByIdData.group.id === nextProps.group.id){
-      if(nextProps.deleteGroupSuccess){
-        this.notificationSystem.addNotification({
-          message: 'Group successfully deleted',
-          level: 'success'
-        });
-      } else if(nextProps.deleteGroupSuccess === false) {
-        this.notificationSystem.addNotification({
-          message: 'Opps! Something went wrong',
-          level: 'error'
-        });
-      }
+    if(nextProps.getGroupByIdData === undefined || nextProps.getGroupByIdData._id === nextProps.group._id){
       if(nextProps.getGroupByIdSuccess){
         this.setState({
-          name: nextProps.getGroupByIdData.group.name,
+          name: nextProps.getGroupByIdData.name,
           members: nextProps.getGroupByIdData.members,
           selectedUser: undefined,
           searchValue: ""
@@ -106,7 +95,7 @@ class GroupRow extends Component {
           message: 'Member successfully added',
           level: 'success'
         });
-        this.props.getGroupById(this.props.group.id);
+        this.props.getGroupById(this.props.group._id);
       } else if(nextProps.addRemoveMemberSuccess === false){
         this.notificationSystem.addNotification({
           message: 'Opps! Something went wrong',
@@ -114,6 +103,18 @@ class GroupRow extends Component {
         });
       }
     }
+    if(nextProps.deleteGroupSuccess){
+      this.notificationSystem.addNotification({
+        message: 'Group successfully deleted',
+        level: 'success'
+      });
+    } else if(nextProps.deleteGroupSuccess === false) {
+      this.notificationSystem.addNotification({
+        message: 'Opps! Something went wrong',
+        level: 'error'
+      });
+    }
+    
   }
 
   closeViewGroup(){
@@ -121,7 +122,7 @@ class GroupRow extends Component {
   }
 
   loadModalData(){
-    this.props.getGroupById(this.props.group.id);
+    this.props.getGroupById(this.props.group._id);
     this.retrieveDataAsynchronously("");
   }
 
@@ -152,13 +153,13 @@ class GroupRow extends Component {
   onSelect(val,item){
       this.setState({
           searchValue: val,
-          selectedUser: item.id
+          selectedUser: item._id
       });
   }
 
   renderItem(item, isHighlighted){
       return (
-          <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item.id}>
+          <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item._id}>
             <p>{item.user_name}</p>
             <p>{item.email}</p>
           </div>
@@ -171,12 +172,12 @@ class GroupRow extends Component {
 
   addMember(){
     if(this.state.selectedUser) {
-      this.props.addRemoveMemberGroup(this.props.group.id,this.state.selectedUser,'ADD');
+      this.props.addRemoveMemberGroup(this.props.group._id,this.state.selectedUser,'ADD');
     }
   }
 
   removeMember(index){
-    this.props.addRemoveMemberGroup(this.props.group.id,this.state.members[index].id,'REMOVE');
+    this.props.addRemoveMemberGroup(this.props.group._id,this.state.members[index]._id,'REMOVE');
   }
 
 	render() {
@@ -194,10 +195,7 @@ class GroupRow extends Component {
       				} 
       				id="user-dropdown"
       				eventKey={1} >
-              {
-                this.props.group.can_delete === 1 &&
-  		            <MenuItem eventKey={1.1} onClick={this.deleteGroup}>Delete</MenuItem>
-              }
+              <MenuItem eventKey={1.1} onClick={this.deleteGroup}>Delete</MenuItem>
   	        </NavDropdown>
       	  </div>
   	    </div>

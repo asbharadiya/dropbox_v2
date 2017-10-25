@@ -1,6 +1,8 @@
 var crypto = require('crypto');
 var conn = require('./connection');
 
+var KeyedMessage = require('kafka-node').KeyedMessage;
+
 var TIMEOUT=8000; //time to wait for response in ms
 var self;
 
@@ -41,16 +43,17 @@ KafkaRPC.prototype.makeRequest = function(topic_name, key, content, callback){
     //make sure we have a response topic
     self.setupResponseQueue(self.producer,topic_name,function(){
         //put the request on a topic
+        var km = new KeyedMessage('key', key)
         var payloads = [
             { 
                 topic: topic_name, 
                 messages: JSON.stringify({
                     correlationId:correlationId,
                     replyTo:'response_topic',
-                    data:content
+                    data:content,
+                    km
                 }),
-                partition:0,
-                key:key
+                partition:0
             }
         ];
         self.producer.send(payloads, function(err, data){
