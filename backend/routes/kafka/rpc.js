@@ -36,7 +36,6 @@ KafkaRPC.prototype.makeRequest = function(topic_name, key, content, callback){
         callback:callback,
         timeout: tId //the id for the timeout so we can clear it
     };
-
     //put the entry in the hash so we can match the response later
     self.requests[correlationId]=entry;
 
@@ -71,7 +70,7 @@ KafkaRPC.prototype.setupResponseQueue = function(producer,topic_name, next){
     self = this;
 
     //subscribe to messages
-    var consumer = self.connection.getConsumer('response_topic', function(consumer){
+    self.connection.getConsumer('response_topic', function(consumer){
         consumer.on('message', function (message) {
             var data = JSON.parse(message.value);
             //get the correlationId
@@ -87,9 +86,6 @@ KafkaRPC.prototype.setupResponseQueue = function(producer,topic_name, next){
                 //callback, no err
                 entry.callback(null, data.data);
             }
-        });
-        consumer.on('error', function (err) {
-            console.log("ERROR:"+err);
         });
         self.response_queue = true;
         next();
