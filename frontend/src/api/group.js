@@ -103,16 +103,3 @@ export const searchGroup = (query) =>
 	}).catch(error => {
         return error;
     }); 
-
-export const searchUsers = (query) =>
-	fetch(api+'/api/search_users?q='+query, {
-	    method: 'GET',
-	    headers: {
-	    	...headers
-        },
-        credentials: 'include'
-	}).then(res => {
-		return res.json();
-	}).catch(error => {
-        return error;
-    });

@@ -90,6 +90,37 @@ function getUserActivity(msg, callback){
     })
 }
 
+function searchUsers(msg, callback){
+    var res = {};
+    mongo.getCollection('user', function(err,coll){
+        coll.find({
+            first_name:new RegExp('.*'+msg.query+'.*','gi'),
+            last_name:new RegExp('.*'+msg.query+'.*','gi'),
+            email:new RegExp('.*'+msg.query+'.*','gi'),
+            _id:{$ne:new ObjectId(msg.user_id)}
+        },
+        {
+            password:false,
+            about:false,
+            education:false,
+            occupation:false,
+            contact_no:false
+        }).toArray(function(err,result){
+            if(err) {
+                res.code = 500;
+                res.message = "Internal server error";
+                callback(null, res);
+            } else {
+                res.code = 200;
+                res.message = "Success";
+                res.data = result;
+                callback(null, res);
+            }
+        });
+    })
+}
+
 exports.getUserProfile = getUserProfile;
 exports.updateUserProfile = updateUserProfile;
 exports.getUserActivity = getUserActivity;
+exports.searchUsers = searchUsers;

@@ -28,8 +28,11 @@ function updateGroup(req,res){
 }
 
 function addRemoveMemberGroup(req,res){
-	kafka.make_request('dropbox','getUserActivity',{
-		user_id:req.user._id
+	kafka.make_request('dropbox','addRemoveMemberGroup',{
+		user_id:req.user._id,
+        group_id:req.body.groupId,
+        member_id:req.body.memberId,
+        action:req.body.action
 	},function(err,result){
         if(err) {
             return res.status(500).json({status:500,statusText:"Internal server error"});
@@ -77,9 +80,23 @@ function getGroups(req,res){
     });
 }
 
+function searchGroups(req,res){
+    kafka.make_request('dropbox','searchGroups',{
+        user_id:req.user._id,
+        query:req.query.q
+    },function(err,result){
+        if(err) {
+            return res.status(500).json({status:500,statusText:"Internal server error"});
+        } else {
+            return res.status(result.code).json({status:result.code,statusText:result.message,data:result.data});
+        }
+    });
+}
+
 exports.createGroup = createGroup;
 exports.updateGroup = updateGroup;
 exports.addRemoveMemberGroup = addRemoveMemberGroup;
 exports.deleteGroup = deleteGroup;
 exports.getGroupById = getGroupById;
 exports.getGroups = getGroups;
+exports.searchGroups = searchGroups;

@@ -6,7 +6,8 @@ import {connect} from 'react-redux';
 import Modal from 'react-modal';
 import Autocomplete from 'react-autocomplete';
 import * as actions from '../../actions/asset';
-import * as api from '../../api/group';
+import * as groupsApi from '../../api/group';
+import * as usersApi from '../../api/user';
 
 class ItemRow extends Component {
 
@@ -55,11 +56,11 @@ class ItemRow extends Component {
   shareAsset(){
     if(this.state.selectedOption === 'users') {
       if(this.state.selectedUser){
-        this.props.shareAsset(this.props.item.id,"users",this.state.selectedUser);
+        this.props.shareAsset(this.props.item._id,"users",this.state.selectedUser);
       }
     } else {
       if(this.state.selectedGroup){
-        this.props.shareAsset(this.props.item.id,"groups",this.state.selectedGroup);
+        this.props.shareAsset(this.props.item._id,"groups",this.state.selectedGroup);
       }
     }
   }
@@ -90,25 +91,25 @@ class ItemRow extends Component {
         superParent = location[3];
     }
     if(superParent === null) {
-      window.open("http://localhost:3001/api/download_asset/"+this.props.item.id,"_blank");
+      window.open("http://localhost:3001/api/download_asset/"+this.props.item._id,"_blank");
     } else {
-      window.open("http://localhost:3001/api/download_asset/"+this.props.item.id+"/"+superParent,"_blank");
+      window.open("http://localhost:3001/api/download_asset/"+this.props.item._id+"/"+superParent,"_blank");
     }
   }
 
   deleteAsset(){
     //delete asset
-    this.props.deleteAsset(this.props.item.id);
+    this.props.deleteAsset(this.props.item._id);
   }
 
   addAssetToStarred(){
     //add asset to starred
-    this.props.starAsset(this.props.item.id,true);
+    this.props.starAsset(this.props.item._id,true);
   }
 
   removeAssetFromStarred(){
     //remove asset from starred
-    this.props.starAsset(this.props.item.id,false);
+    this.props.starAsset(this.props.item._id,false);
   }
 
   componentWillReceiveProps(nextProps){
@@ -184,7 +185,7 @@ class ItemRow extends Component {
   }
 
   retrieveUsersDataAsynchronously(input){
-    api.searchUsers(input)
+    usersApi.searchUsers(input)
     .then((res) => {
       if (res.status === 200) {
         this.setState({
@@ -195,7 +196,7 @@ class ItemRow extends Component {
   }
 
   retrieveGroupsDataAsynchronously(input){
-    api.searchGroup(input)
+    groupsApi.searchGroup(input)
     .then((res) => {
       if (res.status === 200) {
         this.setState({
@@ -216,12 +217,12 @@ class ItemRow extends Component {
     if(this.state.selectedOption === 'users') {
       this.setState({
           searchValue: val,
-          selectedUser: item.id
+          selectedUser: item._id
       });
     } else {
       this.setState({
           searchValue: val,
-          selectedGroup: item.id
+          selectedGroup: item._id
       });
     }
   }
@@ -229,14 +230,14 @@ class ItemRow extends Component {
   renderItem(item, isHighlighted){
     if(this.state.selectedOption === 'users') {
       return (
-          <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item.id}>
-            <p>{item.user_name}</p>
+          <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item._id}>
+            <p>{item.first_name} {item.last_name}</p>
             <p>{item.email}</p>
           </div>
       ); 
     } else {
       return (
-          <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item.id}>
+          <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item._id}>
             <p>{item.name}</p>
           </div>
       );
@@ -245,7 +246,7 @@ class ItemRow extends Component {
 
   getItemValue(item){
     if(this.state.selectedOption === 'users') {
-      return `${item.user_name}`;
+      return `${item.first_name+' '+item.last_name}`;
     } else {
       return `${item.name}`;
     }
@@ -351,7 +352,9 @@ class ItemRow extends Component {
                         inputProps={{ id: 'states-autocomplete', className: 'form-control'}}
                         wrapperStyle={{ position: 'relative', display: 'inline-block', width: '100%' }}
                         shouldItemRender={(item, value) => 
-                          item.user_name.toLowerCase().indexOf(value.toLowerCase()) > -1 || item.email.toLowerCase().indexOf(value.toLowerCase()) > -1
+                          item.first_name.toLowerCase().indexOf(value.toLowerCase()) > -1
+                          || item.last_name.toLowerCase().indexOf(value.toLowerCase()) > -1 
+                          || item.email.toLowerCase().indexOf(value.toLowerCase()) > -1
                         }
                         getItemValue={this.getItemValue}
                         items={this.state.usersAutocompleteData}

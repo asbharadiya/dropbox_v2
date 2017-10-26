@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 import Modal from 'react-modal';
 import Autocomplete from 'react-autocomplete';
 import * as actions from '../../actions/group';
-import * as api from '../../api/group';
+import * as usersApi from '../../api/user';
 
 class GroupRow extends Component {
 
@@ -92,7 +92,7 @@ class GroupRow extends Component {
       }
       if(nextProps.addRemoveMemberSuccess){
         this.notificationSystem.addNotification({
-          message: 'Member successfully added',
+          message: 'Success',
           level: 'success'
         });
         this.props.getGroupById(this.props.group._id);
@@ -133,7 +133,7 @@ class GroupRow extends Component {
   }
 
   retrieveDataAsynchronously(input){
-    api.searchUsers(input)
+    usersApi.searchUsers(input)
     .then((res) => {
       if (res.status === 200) {
         this.setState({
@@ -160,14 +160,14 @@ class GroupRow extends Component {
   renderItem(item, isHighlighted){
       return (
           <div className={`item ${isHighlighted ? 'item-highlighted' : ''}`} key={item._id}>
-            <p>{item.user_name}</p>
+            <p>{item.first_name} {item.last_name}</p>
             <p>{item.email}</p>
           </div>
       ); 
   }
 
   getItemValue(item){
-    return `${item.user_name}`;
+    return `${item.first_name+' '+item.last_name}`;
   }
 
   addMember(){
@@ -227,7 +227,9 @@ class GroupRow extends Component {
                     inputProps={{ id: 'states-autocomplete', className: 'form-control'}}
                     wrapperStyle={{ position: 'relative', display: 'inline-block', width: '100%' }}
                     shouldItemRender={(item, value) => 
-                      item.user_name.toLowerCase().indexOf(value.toLowerCase()) > -1 || item.email.toLowerCase().indexOf(value.toLowerCase()) > -1
+                      item.first_name.toLowerCase().indexOf(value.toLowerCase()) > -1 
+                      || item.last_name.toLowerCase().indexOf(value.toLowerCase()) > -1 
+                      || item.email.toLowerCase().indexOf(value.toLowerCase()) > -1
                     }
                     getItemValue={this.getItemValue}
                     items={this.state.autocompleteData}
@@ -252,7 +254,7 @@ class GroupRow extends Component {
                   return (
                     <li className="member-row" key={index}>
                       <div className="pull-left left-section">
-                        <p className="member-name">{member.user_name}</p>
+                        <p className="member-name">{member.first_name} {member.last_name}</p>
                         <p className="member-email">{member.email}</p>
                       </div>
                       <div className="pull-right right-section" onClick={() => _this.removeMember(index)}>

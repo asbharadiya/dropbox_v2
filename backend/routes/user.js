@@ -41,6 +41,21 @@ function getUserActivity(req,res){
     });
 }
 
+function searchUsers(req,res){
+    kafka.make_request('dropbox','searchUsers',{
+        user_id:req.user._id,
+        query:req.query.q
+    },function(err,result){
+        if(err) {
+            console.log(err);
+            return res.status(500).json({status:500,statusText:"Internal server error"});
+        } else {
+            return res.status(result.code).json({status:result.code,statusText:result.message,data:result.data});
+        }
+    });
+}
+
 exports.getUserProfile = getUserProfile;
 exports.updateUserProfile = updateUserProfile;
 exports.getUserActivity = getUserActivity;
+exports.searchUsers = searchUsers;

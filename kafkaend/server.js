@@ -105,6 +105,24 @@ consumer.on('message', function (message) {
                 return;
             });
             break;
+        case 'searchUsers':
+            user.searchUsers(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
         case 'createGroup':
             group.createGroup(data.data, function(err,res){
                 var payloads = [
@@ -197,6 +215,24 @@ consumer.on('message', function (message) {
             break;
         case 'getGroups':
             group.getGroups(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'serachGroups':
+            group.serachGroups(data.data, function(err,res){
                 var payloads = [
                     {   
                         topic: data.replyTo,

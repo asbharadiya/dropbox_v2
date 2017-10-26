@@ -4,7 +4,7 @@ var ObjectId = require('mongodb').ObjectId;
 function createGroup(msg, callback){
     var res = {};
     if(msg.name && msg.name !== '') {
-        mongo.getCollection('group', function(err,coll){
+        mongo.getCollection('groups', function(err,coll){
             coll.findOne({
                 owner_id:new ObjectId(msg.user_id),
                 name:msg.name
@@ -50,7 +50,7 @@ function createGroup(msg, callback){
 function updateGroup(msg, callback){
     var res = {};
     if(msg.name && msg.name !== '') {
-        mongo.getCollection('group', function(err,coll){
+        mongo.getCollection('groups', function(err,coll){
             coll.findOne({
                 owner_id:new ObjectId(msg.user_id),
                 name:msg.name,
@@ -89,7 +89,6 @@ function updateGroup(msg, callback){
                                     res.code = 200;
                                     res.message = "Success";
                                     callback(null, res);
-                                    //TODO add user activity
                                 }
                             }     
                         });
@@ -104,28 +103,80 @@ function updateGroup(msg, callback){
     }
 }
 
-//TODO
 function addRemoveMemberGroup(msg, callback){
     var res = {};
-    mongo.getCollection('user_activity', function(err,coll){
-        coll.find({user_id:msg.user_id}).toArray(function(err,results){
-            if(err) {
-                res.code = 500;
-                res.message = "Internal server error";
-                callback(null, res);
-            } else {
-                res.code = 200;
-                res.message = "Success";
-                res.data = results;
-                callback(null, res);
-            }
-        });
-    })
+    if(msg.group_id && msg.group_id !== ''
+        || msg.member_id && msg.member_id !== ''
+        || msg.action && msg.action !== '') {
+        mongo.getCollection('groups', function(err,coll){
+            coll.findOne({
+                owner_id:new ObjectId(msg.user_id),
+                _id:new ObjectId(msg.group_id)
+            }, function(err,result){
+                if(err) {
+                    res.code = 500;
+                    res.message = "Internal server error";
+                    callback(null, res);
+                } else {
+                    if(result){
+                        if(msg.action === 'ADD'){
+                            coll.updateOne(
+                            {
+                                _id:new ObjectId(msg.group_id)
+                            },
+                            {
+                                $addToSet: {
+                                    members:new ObjectId(msg.member_id)
+                                }
+                            }, function(err,result){
+                                if(err) {
+                                    res.code = 500;
+                                    res.message = "Internal server error";
+                                    callback(null, res);
+                                } else {
+                                    res.code = 200;
+                                    res.message = "Success";
+                                    callback(null, res);
+                                }     
+                            });
+                        } else if(msg.action === 'REMOVE') {
+                            coll.updateOne(
+                            {
+                                _id:new ObjectId(msg.group_id)
+                            },
+                            {
+                                $pull: {
+                                    members:new ObjectId(msg.member_id)
+                                }
+                            }, function(err,result){
+                                if(err) {
+                                    res.code = 500;
+                                    res.message = "Internal server error";
+                                    callback(null, res);
+                                } else {
+                                    res.code = 200;
+                                    res.message = "Success";
+                                    callback(null, res);
+                                }     
+                            });
+                        }
+                    } else {
+                        res.code = 404;
+                        res.message = "Group not found";
+                    }
+                }
+            });
+        })
+    } else {
+        res.code = 400;
+        res.message = "Fields missing";
+        callback(null, res);
+    }
 }
 
 function deleteGroup(msg, callback){
     var res = {};
-    mongo.getCollection('group', function(err,coll){
+    mongo.getCollection('groups', function(err,coll){
         coll.deleteOne(
         {
             _id:new ObjectId(msg.group_id),
@@ -144,7 +195,6 @@ function deleteGroup(msg, callback){
                     res.code = 200;
                     res.message = "Success";
                     callback(null, res);
-                    //TODO add user activity
                 }
             }     
         });
@@ -153,11 +203,31 @@ function deleteGroup(msg, callback){
 
 function getGroupById(msg, callback){
     var res = {};
-    mongo.getCollection('group', function(err,coll){
-        coll.findOne({
-            owner_id:new ObjectId(msg.user_id),
-            _id:new ObjectId(msg.group_id)
-        }, function(err,result){
+    mongo.getCollection('groups', function(err,coll){
+        coll.aggregate([{
+            $match: {
+                owner_id:new ObjectId(msg.user_id),
+                _id:new ObjectId(msg.group_id)
+            }
+        },
+        {
+            $lookup: {
+                from: "user",
+                localField: "members",
+                foreignField: "_id",
+                as: "members"
+            }
+        },
+        {
+            $project:{
+                "members.password":false,
+                "members.is_verified":false,
+                "members.about":false,
+                "members.contact_no":false,
+                "members.education":false,
+                "members.occupation":false,
+            }
+        }], function(err,result){
             if(err) {
                 res.code = 500;
                 res.message = "Internal server error";
@@ -166,9 +236,7 @@ function getGroupById(msg, callback){
                 if(result){
                     res.code = 200;
                     res.message = "Success";
-                    //TODO send members also
-                    result.members = [];
-                    res.data = result;
+                    res.data = result[0];
                     callback(null, res);
                 } else {
                     res.code = 404;
@@ -182,9 +250,34 @@ function getGroupById(msg, callback){
 
 function getGroups(msg, callback){
     var res = {};
-    mongo.getCollection('group', function(err,coll){
+    mongo.getCollection('groups', function(err,coll){
         coll.find({
             owner_id:new ObjectId(msg.user_id)
+        }).toArray(function(err,result){
+            if(err) {
+                res.code = 500;
+                res.message = "Internal server error";
+                callback(null, res);
+            } else {
+                res.code = 200;
+                res.message = "Success";
+                res.data = result;
+                callback(null, res);
+            }
+        });
+    })
+}
+
+function searchGroups(msg, callback){
+    var res = {};
+    mongo.getCollection('groups', function(err,coll){
+        coll.find({
+            name:new RegExp('.*'+msg.query+'.*','gi'),
+            owner_id:new ObjectId(msg.user_id)
+        },
+        {
+            owner_id:false,
+            created_date:false
         }).toArray(function(err,result){
             if(err) {
                 res.code = 500;
@@ -206,3 +299,4 @@ exports.addRemoveMemberGroup = addRemoveMemberGroup;
 exports.deleteGroup = deleteGroup;
 exports.getGroupById = getGroupById;
 exports.getGroups = getGroups;
+exports.searchGroups = searchGroups;

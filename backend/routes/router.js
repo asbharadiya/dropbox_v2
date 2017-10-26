@@ -14,6 +14,7 @@ module.exports = function(router,passport) {
 	router.get('/api/user_profile', isAuthenticated, user.getUserProfile);
 	router.post('/api/user_profile', isAuthenticated, user.updateUserProfile);
 	router.get('/api/user_activity', isAuthenticated, user.getUserActivity);
+	router.get('/api/search_users', isAuthenticated, user.searchUsers);
 
 	router.post('/api/create_group', isAuthenticated, group.createGroup);
 	router.post('/api/update_group', isAuthenticated, group.updateGroup);
@@ -21,6 +22,7 @@ module.exports = function(router,passport) {
 	router.post('/api/delete_group', isAuthenticated, group.deleteGroup);
 	router.get('/api/get_group_by_id', isAuthenticated, group.getGroupById);
 	router.get('/api/get_groups', isAuthenticated, group.getGroups);
+	router.get('/api/search_groups', isAuthenticated, group.searchGroups);
 	
 	function isAuthenticated(req, res, next) {
 		if(req.session.passport && req.session.passport.user._id) {
