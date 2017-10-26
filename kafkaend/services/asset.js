@@ -279,14 +279,26 @@ function addAsset(msg, callback){
     }
 }
 
-//TODO limit fields in response
 function getAssets(msg, callback){
     var res = {};
     mongo.getCollection('assets', function(err,coll){
         if(msg.starred){
-            coll.find({
-                starredUsers:new ObjectId(msg.user_id)
-            }).toArray(function(err,result){
+            coll.aggregate([{
+                $match: {
+                    starredUsers:new ObjectId(msg.user_id),
+                    is_deleted:false
+                }
+            },
+            {
+                $project: {
+                    created_date:true,
+                    is_directory:true,
+                    name:true,
+                    owner_id:true,
+                    is_starred:{$literal:true},
+                    is_owner:{$eq:[(new ObjectId(msg.user_id)),"$owner_id"]}
+                }
+            }]).toArray(function(err,result){
                 if(err) {
                     res.code = 500;
                     res.message = "Internal server error";
@@ -299,17 +311,31 @@ function getAssets(msg, callback){
                 }
             });   
         } else if(msg.recent){
-            coll.find({
-                $or:[
-                    {
-                        owner_id:new ObjectId(msg.user_id),
-                        parent_id:null
-                    },
-                    {
-                        sharedUsers:new ObjectId(msg.user_id)
-                    }
-                ]
-            }).sort({
+            coll.aggregate([{
+                $match: {
+                    $or:[
+                        {
+                            owner_id:new ObjectId(msg.user_id),
+                            parent_id:null,
+                            is_deleted:false
+                        },
+                        {
+                            sharedUsers:new ObjectId(msg.user_id),
+                            is_deleted:false
+                        }
+                    ]
+                }
+            },
+            {   
+                $project: {
+                    created_date:true,
+                    is_directory:true,
+                    name:true,
+                    owner_id:true,
+                    is_starred:{$in:[(new ObjectId(msg.user_id)),{$ifNull:["$starredUsers",[]]}]},
+                    is_owner:{$eq:[(new ObjectId(msg.user_id)),"$owner_id"]}
+                }
+            }]).sort({
                 created_date:-1
             }).limit(10).toArray(function(err,result){
                 if(err) {
@@ -354,9 +380,22 @@ function getAssets(msg, callback){
                                 callback(null, res);
                             } else {
                                 if(result){
-                                    coll.find({
-                                        parent_id:new ObjectId(result._id)
-                                    }).toArray(function(err,result){
+                                    coll.aggregate([{
+                                        $match: {
+                                            parent_id:new ObjectId(result._id),
+                                            is_deleted:false
+                                        }
+                                    },
+                                    {
+                                        $project: {
+                                            created_date:true,
+                                            is_directory:true,
+                                            name:true,
+                                            owner_id:true,
+                                            is_starred:{$in:[(new ObjectId(msg.user_id)),{$ifNull:["$starredUsers",[]]}]},
+                                            is_owner:{$eq:[(new ObjectId(msg.user_id)),"$owner_id"]}
+                                        }
+                                    }]).toArray(function(err,result){
                                         if(err) {
                                             res.code = 500;
                                             res.message = "Internal server error";
@@ -383,17 +422,31 @@ function getAssets(msg, callback){
                 }
             })
         } else {
-            coll.find({
-                $or:[
-                    {
-                        owner_id:new ObjectId(msg.user_id),
-                        parent_id:null
-                    },
-                    {
-                        sharedUsers:new ObjectId(msg.user_id)
-                    }
-                ]
-            }).toArray(function(err,result){
+            coll.aggregate([{
+                $match:{
+                    $or:[
+                        {
+                            owner_id:new ObjectId(msg.user_id),
+                            parent_id:null,
+                            is_deleted:false
+                        },
+                        {
+                            sharedUsers:new ObjectId(msg.user_id),
+                            is_deleted:false
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    created_date:true,
+                    is_directory:true,
+                    name:true,
+                    owner_id:true,
+                    is_starred:{$in:[(new ObjectId(msg.user_id)),{$ifNull:["$starredUsers",[]]}]},
+                    is_owner:{$eq:[(new ObjectId(msg.user_id)),"$owner_id"]}
+                }
+            }]).toArray(function(err,result){
                 if(err) {
                     res.code = 500;
                     res.message = "Internal server error";
@@ -409,22 +462,47 @@ function getAssets(msg, callback){
     })
 }
 
-//TODO
 function deleteAsset(msg, callback){
     var res = {};
-    res.code = 200;
-    res.message = "Success";
-    callback(null, res);   
+    mongo.getCollection('assets', function(err,coll){
+        coll.updateOne(
+        {
+            _id:new ObjectId(msg.asset_id),
+            owner_id:new ObjectId(msg.user_id)
+        },
+        {
+            $set:{
+                is_deleted:true
+            }
+        }, function(err,result){
+            if(err) {
+                res.code = 500;
+                res.message = "Internal server error";
+                callback(null, res);
+            } else {
+                if(result.result.nModified === 0){
+                    res.code = 404;
+                    res.message = "Asset not found";
+                    callback(null, res);
+                } else {
+                    res.code = 200;
+                    res.message = "Success";
+                    callback(null, res);
+                }
+            }     
+        });
+    })  
 }
 
 function addOrRemoveStarredAsset(msg, callback){
     var res = {};
-    if(msg.asset_id && msg.asset_id !== '' && msg.is_starred && msg.is_starred !== '') {
+    if(msg.asset_id && msg.asset_id !== '' && msg.is_starred !== undefined && msg.is_starred !== '') {
         mongo.getCollection('assets', function(err,coll){
             if(msg.is_starred){
                 coll.updateOne(
                 {
                     is_deleted:false,
+                    _id: new ObjectId(msg.asset_id),
                     $or:[
                         {
                             owner_id: new ObjectId(msg.user_id)   
@@ -439,6 +517,7 @@ function addOrRemoveStarredAsset(msg, callback){
                         starredUsers:new ObjectId(msg.user_id)
                     }
                 }, function(err,result){
+                    console.log(result);
                     if(err) {
                         res.code = 500;
                         res.message = "Internal server error";
@@ -454,6 +533,7 @@ function addOrRemoveStarredAsset(msg, callback){
                 coll.updateOne(
                 {
                     is_deleted:false,
+                    _id: new ObjectId(msg.asset_id),
                     $or:[
                         {
                             owner_id: new ObjectId(msg.user_id)   
@@ -495,12 +575,115 @@ function shareAsset(msg, callback){
     callback(null, res);   
 }
 
-//TODO
 function downloadAsset(msg, callback){
     var res = {};
-    res.code = 200;
-    res.message = "Success";
-    callback(null, res);   
+    if(msg.asset_id && msg.asset_id !== ''){
+        mongo.getCollection('assets', function(err,coll){
+            if(msg.super_parent && msg.super_parent !== ''){
+                coll.findOne({
+                    is_deleted:false,
+                    name:msg.super_parent,
+                    $or:[
+                        {
+                            owner_id: new ObjectId(msg.user_id)   
+                        },
+                        {
+                            sharedUsers:new ObjectId(msg.user_id)
+                        }
+                    ]
+                }, function(err,result){
+                    if(err) {
+                        res.code = 500;
+                        res.message = "Internal server error";
+                        callback(null, res);
+                    } else {
+                        if(result){
+                            coll.findOne({
+                                is_deleted:false,
+                                _id: new ObjectId(msg.asset_id),
+                                owner_id:new ObjectId(result.owner_id)
+                            }, function(err,result){
+                                if(err) {
+                                    res.code = 500;
+                                    res.message = "Internal server error";
+                                    callback(null, res);
+                                } else {
+                                    if(result){
+                                        //TODO download file
+                                        res.code = 200;
+                                        res.message = "Success";
+                                        callback(null, res);
+                                    } else {
+                                        res.code = 400;
+                                        res.message = "Bad request";
+                                        callback(null, res);
+                                    }
+                                }
+                            });
+                        } else {
+                            res.code = 400;
+                            res.message = "Bad request";
+                            callback(null, res);
+                        }
+                    }    
+                })
+            } else {
+                coll.findOne({
+                    is_deleted:false,
+                    _id: new ObjectId(msg.asset_id),
+                    $or:[
+                        {
+                            owner_id: new ObjectId(msg.user_id)   
+                        },
+                        {
+                            sharedUsers:new ObjectId(msg.user_id)
+                        }
+                    ]
+                }, function(err,result){
+                    if(err) {
+                        res.code = 500;
+                        res.message = "Internal server error";
+                        callback(null, res);
+                    } else {
+                        if(result){
+                            //TODO download file
+                            var gridStore = new GridStore(mongo.getDb(), result.file_id, 'r',{root:'assets'});
+                            gridStore.open(function(err, gridStore) {
+                                gridStore.read(function(err, gridResult) {
+                                    if (err) {
+                                        gridStore.close(function(err, result) {
+                                            res.code = 500;
+                                            res.message = "Error saving file to database";
+                                            callback(null, res);
+                                        });
+                                    } else {
+                                        gridStore.close(function(err, result) {
+                                            res.code = 200;
+                                            res.message = "Success";
+                                            res.data = {
+                                                filename:gridStore.filename,
+                                                content_type:gridStore.contentType,
+                                                buffer:gridResult
+                                            }
+                                            callback(null, res);
+                                        });
+                                    }
+                                })
+                            })
+                        } else {
+                            res.code = 400;
+                            res.message = "Bad request";
+                            callback(null, res);
+                        }
+                    }    
+                })
+            }
+        });
+    } else {
+        res.code = 400;
+        res.message = "Fields missing";
+        callback(null, res);  
+    } 
 }
 
 exports.addAsset = addAsset;

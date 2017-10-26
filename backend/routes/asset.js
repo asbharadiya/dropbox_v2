@@ -84,7 +84,9 @@ function downloadAsset(req,res){
         if(err) {
             return res.status(500).json({status:500,statusText:"Internal server error"});
         } else {
-            return res.status(result.code).json({status:result.code,statusText:result.message});
+            res.setHeader("Content-disposition", "attachment; filename="+result.data.filename);
+            res.setHeader("Content-type", result.data.content_type);
+            return res.end(new Buffer(result.data.buffer.data,'binary'));
         }
     });
 }

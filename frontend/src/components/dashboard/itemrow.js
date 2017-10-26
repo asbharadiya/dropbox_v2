@@ -278,7 +278,7 @@ class ItemRow extends Component {
     		</div>
         <div className="item-options">
           {
-            this.props.item.is_directory === 1 && this.props.item.can_delete_or_share === 0 ? (
+            this.props.item.is_directory === true && this.props.item.is_owner === false ? (
               <div></div>
             ) : (
         			<NavDropdown 
@@ -288,15 +288,15 @@ class ItemRow extends Component {
         				id="user-dropdown"
         				eventKey={1} >
                 {  
-                  this.props.item.is_directory === 0 &&
+                  this.props.item.is_directory === false &&
     		            <MenuItem eventKey={1.1} onClick={this.downloadAsset}>Download</MenuItem>
                 }
     		        {
-                  this.props.item.can_delete_or_share === 1 &&
+                  this.props.item.is_owner === true &&
                     <MenuItem eventKey={1.2} onClick={this.openShareModal}>Share</MenuItem>
                 }
                 {
-                  this.props.item.can_delete_or_share === 1 &&
+                  this.props.item.is_owner === true &&
     		            <MenuItem eventKey={1.3} onClick={this.deleteAsset}>Delete</MenuItem>
                 }
     	        </NavDropdown>
