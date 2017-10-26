@@ -3,6 +3,7 @@ var connection =  new require('./kafka/connection');
 var auth = require('./services/auth');
 var user = require('./services/user');
 var group = require('./services/group');
+var asset = require('./services/asset');
 
 var mongo = require('./services/mongo');
 
@@ -233,6 +234,114 @@ consumer.on('message', function (message) {
             break;
         case 'serachGroups':
             group.serachGroups(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'addAsset':
+            asset.addAsset(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'getAssets':
+            asset.getAssets(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'deleteAsset':
+            asset.deleteAsset(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'addOrRemoveStarredAsset':
+            asset.addOrRemoveStarredAsset(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'shareAsset':
+            asset.shareAsset(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'downloadAsset':
+            asset.downloadAsset(data.data, function(err,res){
                 var payloads = [
                     {   
                         topic: data.replyTo,

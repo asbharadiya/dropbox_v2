@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 var http = require('http');
 
 var fs = require('file-system');
-var dir = './tmp';
+var dir = '../tmp';
 
 var passport = require('passport');
 

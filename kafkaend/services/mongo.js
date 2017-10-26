@@ -29,4 +29,9 @@ var getCollection = function(name,callback){
   }
 };
 
+var getDb = function(){
+  return db;
+}
+
 exports.getCollection = getCollection;
+exports.getDb = getDb;

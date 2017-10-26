@@ -68,7 +68,7 @@ class ItemRow extends Component {
   goToFolder(item){
     let location = this.props.location.pathname.split("/");
     if(location[location.length-1] === "home" || location[location.length-1] === "files"){
-        this.props.history.push("folders/"+item.owner+"/"+item.name);
+        this.props.history.push("folders/"+item.owner_id+"/"+item.name);
     } else {
       this.props.history.push(this.props.location.pathname+"/"+item.name);
     }
