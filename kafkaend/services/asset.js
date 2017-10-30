@@ -517,7 +517,6 @@ function addOrRemoveStarredAsset(msg, callback){
                         starredUsers:new ObjectId(msg.user_id)
                     }
                 }, function(err,result){
-                    console.log(result);
                     if(err) {
                         res.code = 500;
                         res.message = "Internal server error";
@@ -567,12 +566,91 @@ function addOrRemoveStarredAsset(msg, callback){
     }
 }
 
-//TODO
 function shareAsset(msg, callback){
     var res = {};
-    res.code = 200;
-    res.message = "Success";
-    callback(null, res);   
+    if(msg.asset_id && msg.asset_id !== ''
+        && msg.share_with && msg.share_with !== '' 
+        && msg.target_id && msg.target_id !== '') {
+        mongo.getCollection('assets', function(err,coll){
+            if(msg.share_with === 'users'){
+                coll.updateOne(
+                {
+                    is_deleted:false,
+                    _id: new ObjectId(msg.asset_id),
+                    $or:[
+                        {
+                            owner_id: new ObjectId(msg.user_id)   
+                        }
+                    ]
+                },
+                {
+                    $addToSet: {
+                        sharedUsers:new ObjectId(msg.target_id)
+                    }
+                }, function(err,result){
+                    if(err) {
+                        res.code = 500;
+                        res.message = "Internal server error";
+                        callback(null, res);
+                    } else {
+                        if(result.result.nModified === 0){
+                            res.code = 400;
+                            res.message = "Asset already shared";
+                            callback(null, res);
+                        } else {
+                            res.code = 200;
+                            res.message = "Success";
+                            callback(null, res);
+                            //TODO add user activity
+                        }
+                    }     
+                });
+            } else {
+                mongo.getDb().collection("groups").findOne({
+                    _id: new ObjectId(msg.target_id) 
+                },
+                {
+                    _id:false,
+                    members:true
+                }, function(err,group){
+                    coll.updateOne(
+                    {
+                        is_deleted:false,
+                        _id: new ObjectId(msg.asset_id),
+                        owner_id: new ObjectId(msg.user_id)
+                    },
+                    {
+                        $addToSet: {
+                            sharedUsers:{ 
+                                $each: group.members
+                            }
+                        }
+                    }, function(err,result){
+                        if(err) {
+                            res.code = 500;
+                            res.message = "Internal server error";
+                            callback(null, res);
+                        } else {
+                            if(result.result.nModified === 0){
+                                res.code = 400;
+                                res.message = "Asset already shared";
+                                callback(null, res);
+                            } else {
+                                res.code = 200;
+                                res.message = "Success";
+                                callback(null, res);
+                                //TODO add user activity
+                            }
+                        }     
+                    });
+                })
+            }
+        });
+    } else {
+        res.code = 400;
+        res.message = "Fields missing";
+        callback(null, res);   
+    }
 }
 
 function downloadAsset(msg, callback){
@@ -610,9 +688,29 @@ function downloadAsset(msg, callback){
                                 } else {
                                     if(result){
                                         //TODO download file
-                                        res.code = 200;
-                                        res.message = "Success";
-                                        callback(null, res);
+                                        var gridStore = new GridStore(mongo.getDb(), result.file_id, 'r',{root:'assets'});
+                                        gridStore.open(function(err, gridStore) {
+                                            gridStore.read(function(err, gridResult) {
+                                                if (err) {
+                                                    gridStore.close(function(err, result) {
+                                                        res.code = 500;
+                                                        res.message = "Error getting file from database";
+                                                        callback(null, res);
+                                                    });
+                                                } else {
+                                                    gridStore.close(function(err, result) {
+                                                        res.code = 200;
+                                                        res.message = "Success";
+                                                        res.data = {
+                                                            filename:gridStore.filename,
+                                                            content_type:gridStore.contentType,
+                                                            buffer:gridResult
+                                                        }
+                                                        callback(null, res);
+                                                    });
+                                                }
+                                            })
+                                        })
                                     } else {
                                         res.code = 400;
                                         res.message = "Bad request";
@@ -653,7 +751,7 @@ function downloadAsset(msg, callback){
                                     if (err) {
                                         gridStore.close(function(err, result) {
                                             res.code = 500;
-                                            res.message = "Error saving file to database";
+                                            res.message = "Error getting file from database";
                                             callback(null, res);
                                         });
                                     } else {

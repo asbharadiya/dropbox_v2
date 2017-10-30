@@ -234,8 +234,8 @@ connection.getConsumer(topic_name, function(consumer){
                     return;
                 });
                 break;
-            case 'serachGroups':
-                group.serachGroups(data.data, function(err,res){
+            case 'searchGroups':
+                group.searchGroups(data.data, function(err,res){
                     var payloads = [
                         {   
                             topic: data.replyTo,

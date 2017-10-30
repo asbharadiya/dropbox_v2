@@ -81,7 +81,7 @@ app.use(function(err, req, res, next) {
 
 http.createServer(app).listen(app.get('port'), function(){
   if (!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
+      //fs.mkdirSync(dir);
   }
   console.log('Express server listening on port ' + app.get('port'));
 });
