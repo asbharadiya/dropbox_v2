@@ -111,7 +111,7 @@ function addAsset(msg, callback){
                                                     var fileId = new ObjectId();
                                                     var gridStore = new GridStore(mongo.getDb(), fileId, new_filename, 'w', {root:'assets',content_type:msg.file.mimetype,chunk_size:msg.file.size});
                                                     gridStore.open(function(err, gridStore) {
-                                                        gridStore.write(new Buffer(msg.file.buffer), function(err, gridResult) {
+                                                        gridStore.write(new Buffer(msg.buffer), function(err, gridResult) {
                                                             if (err) {
                                                                 gridStore.close(function(err, gridResult) {
                                                                     res.code = 500;
@@ -233,7 +233,7 @@ function addAsset(msg, callback){
                             var fileId = new ObjectId();
                             var gridStore = new GridStore(mongo.getDb(), fileId, new_filename, 'w', {root:'assets',content_type:msg.file.mimetype,chunk_size:msg.file.size});
                             gridStore.open(function(err, gridStore) {
-                                gridStore.write(new Buffer(msg.file.buffer), function(err, gridResult) {
+                                gridStore.write(new Buffer(msg.buffer), function(err, gridResult) {
                                     if (err) {
                                         gridStore.close(function(err, gridResult) {
                                             res.code = 500;
@@ -687,7 +687,6 @@ function downloadAsset(msg, callback){
                                     callback(null, res);
                                 } else {
                                     if(result){
-                                        //TODO download file
                                         var gridStore = new GridStore(mongo.getDb(), result.file_id, 'r',{root:'assets'});
                                         gridStore.open(function(err, gridStore) {
                                             gridStore.read(function(err, gridResult) {
@@ -744,7 +743,6 @@ function downloadAsset(msg, callback){
                         callback(null, res);
                     } else {
                         if(result){
-                            //TODO download file
                             var gridStore = new GridStore(mongo.getDb(), result.file_id, 'r',{root:'assets'});
                             gridStore.open(function(err, gridStore) {
                                 gridStore.read(function(err, gridResult) {
@@ -760,9 +758,9 @@ function downloadAsset(msg, callback){
                                             res.message = "Success";
                                             res.data = {
                                                 filename:gridStore.filename,
-                                                content_type:gridStore.contentType,
-                                                buffer:gridResult
+                                                content_type:gridStore.contentType
                                             }
+                                            res.buffer = gridResult;
                                             callback(null, res);
                                         });
                                     }
