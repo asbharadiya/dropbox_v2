@@ -1,4 +1,6 @@
 var mongo = require("./mongo");
+var user = require("./user");
+
 var ObjectId = require('mongodb').ObjectId;
 
 function createGroup(msg, callback){
@@ -30,10 +32,11 @@ function createGroup(msg, callback){
                                 res.message = "Internal server error";
                                 callback(null, res);
                             } else {
-                                res.code = 200;
-                                res.message = "Success";
-                                callback(null, res);
-                                //TODO add user activity
+                                user.addUserActivity(msg.user_id,"New group created",curr_date,function(activity_res){
+                                    res.code = 200;
+                                    res.message = "Success";
+                                    callback(null, res);
+                                });
                             }     
                         });
                     }

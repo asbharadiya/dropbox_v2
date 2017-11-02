@@ -120,7 +120,24 @@ function searchUsers(msg, callback){
     })
 }
 
+function addUserActivity(user_id,action,timestamp,callback){
+    mongo.getCollection('user_activity', function(err,coll){
+        coll.insert({
+            user_id:new ObjectId(user_id),
+            action:action,
+            created_date:timestamp   
+        },function(err,result){
+            if(err){
+                callback(false);
+            } else {
+                callback(true);
+            } 
+        });
+    })
+}
+
 exports.getUserProfile = getUserProfile;
 exports.updateUserProfile = updateUserProfile;
 exports.getUserActivity = getUserActivity;
 exports.searchUsers = searchUsers;
+exports.addUserActivity = addUserActivity;

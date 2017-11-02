@@ -1,4 +1,6 @@
 var mongo = require("./mongo");
+var user = require("./user");
+
 var ObjectId = require('mongodb').ObjectId;
 var Db = require('mongodb').Db;
 var GridStore = require('mongodb').GridStore;
@@ -78,10 +80,11 @@ function addAsset(msg, callback){
                                                             res.message = "Internal server error";
                                                             callback(null, res);
                                                         } else {
-                                                            res.code = 200;
-                                                            res.message = "Success";
-                                                            callback(null, res);
-                                                            //TODO add user activity
+                                                            user.addUserActivity(msg.user_id,"New folder created",curr_date,function(activity_res){
+                                                                res.code = 200;
+                                                                res.message = "Success";
+                                                                callback(null, res);
+                                                            });
                                                         }     
                                                     });
                                                 }
@@ -136,10 +139,11 @@ function addAsset(msg, callback){
                                                                             res.message = "Internal server error";
                                                                             callback(null, res);
                                                                         } else {
-                                                                            res.code = 200;
-                                                                            res.message = "Success";
-                                                                            callback(null, res);
-                                                                            //TODO add user activity
+                                                                            user.addUserActivity(msg.user_id,"New file uploaded",curr_date,function(activity_res){
+                                                                                res.code = 200;
+                                                                                res.message = "Success";
+                                                                                callback(null, res);
+                                                                            });
                                                                         }     
                                                                     });
                                                                 });
@@ -200,10 +204,11 @@ function addAsset(msg, callback){
                                     res.message = "Internal server error";
                                     callback(null, res);
                                 } else {
-                                    res.code = 200;
-                                    res.message = "Success";
-                                    callback(null, res);
-                                    //TODO add user activity
+                                    user.addUserActivity(msg.user_id,"New folder created",curr_date,function(activity_res){
+                                        res.code = 200;
+                                        res.message = "Success";
+                                        callback(null, res);
+                                    });
                                 }     
                             });
                         }
@@ -257,10 +262,11 @@ function addAsset(msg, callback){
                                                     res.message = "Internal server error";
                                                     callback(null, res);
                                                 } else {
-                                                    res.code = 200;
-                                                    res.message = "Success";
-                                                    callback(null, res);
-                                                    //TODO add user activity
+                                                    user.addUserActivity(msg.user_id,"New file uploaded",curr_date,function(activity_res){
+                                                        res.code = 200;
+                                                        res.message = "Success";
+                                                        callback(null, res);
+                                                    });
                                                 }     
                                             });
                                         });
@@ -522,10 +528,11 @@ function addOrRemoveStarredAsset(msg, callback){
                         res.message = "Internal server error";
                         callback(null, res);
                     } else {
-                        res.code = 200;
-                        res.message = "Success";
-                        callback(null, res);
-                        //TODO add user activity
+                        user.addUserActivity(msg.user_id,"File or folder starred",new Date(),function(activity_res){
+                            res.code = 200;
+                            res.message = "Success";
+                            callback(null, res);
+                        });
                     }     
                 });
             } else {
@@ -598,10 +605,11 @@ function shareAsset(msg, callback){
                             res.message = "Asset already shared";
                             callback(null, res);
                         } else {
-                            res.code = 200;
-                            res.message = "Success";
-                            callback(null, res);
-                            //TODO add user activity
+                            user.addUserActivity(msg.user_id,"Asset shared with user",new Date(),function(activity_res){
+                                res.code = 200;
+                                res.message = "Success";
+                                callback(null, res);
+                            });
                         }
                     }     
                 });
@@ -636,10 +644,11 @@ function shareAsset(msg, callback){
                                 res.message = "Asset already shared";
                                 callback(null, res);
                             } else {
-                                res.code = 200;
-                                res.message = "Success";
-                                callback(null, res);
-                                //TODO add user activity
+                                user.addUserActivity(msg.user_id,"Asset shared with group",new Date(),function(activity_res){
+                                    res.code = 200;
+                                    res.message = "Success";
+                                    callback(null, res);
+                                });
                             }
                         }     
                     });

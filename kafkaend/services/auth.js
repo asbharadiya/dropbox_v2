@@ -74,7 +74,6 @@ function signup(msg, callback){
                                     res.code = 200;
                                     res.message = "Success";
                                     res.data = {_id:user.insertedIds[0],uname:msg.first_name+" "+msg.last_name};
-                                    //TODO add user activity
                                 }
                                 callback(null, res);
                             });
