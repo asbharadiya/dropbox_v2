@@ -15,6 +15,8 @@ module.exports = function(router,passport) {
 	router.get('/api/check_session', isAuthenticated, auth.checkSession);
 
 	router.get('/api/user_profile', isAuthenticated, user.getUserProfile);
+	router.get('/api/user_profile_without_pooling', isAuthenticated, user.getUserProfileWithoutPooling);
+	router.get('/api/user_profile_with_db_pooling', isAuthenticated, user.getUserProfileWithDbPooling);
 	router.post('/api/user_profile', isAuthenticated, user.updateUserProfile);
 	router.get('/api/user_activity', isAuthenticated, user.getUserActivity);
 	router.get('/api/search_users', isAuthenticated, user.searchUsers);

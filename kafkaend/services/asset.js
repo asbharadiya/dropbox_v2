@@ -112,42 +112,46 @@ function addAsset(msg, callback){
                                                         new_filename = [new_filename.substring(0, new_filename.lastIndexOf(".")), "(", count, ")",new_filename.substring(new_filename.lastIndexOf("."), new_filename.length)].join('');
                                                     }
                                                     var fileId = new ObjectId();
-                                                    var gridStore = new GridStore(mongo.getDb(), fileId, new_filename, 'w', {root:'assets',content_type:msg.file.mimetype,chunk_size:msg.file.size});
-                                                    gridStore.open(function(err, gridStore) {
-                                                        gridStore.write(new Buffer(msg.buffer), function(err, gridResult) {
-                                                            if (err) {
-                                                                gridStore.close(function(err, gridResult) {
-                                                                    res.code = 500;
-                                                                    res.message = "Error saving file to database";
-                                                                    callback(null, res);
-                                                                });
-                                                            } else {
-                                                                gridStore.close(function(err, gridResult) {
-                                                                    var curr_date = new Date();
-                                                                    coll.insert({
-                                                                        owner_id:new ObjectId(msg.user_id),
-                                                                        is_directory:false,
-                                                                        created_date:curr_date,
-                                                                        is_deleted:false,
-                                                                        name:new_filename,
-                                                                        original_name:msg.file.originalname,
-                                                                        file_id:fileId,
-                                                                        parent_id:new ObjectId(result._id)
-                                                                    }, function(err,result){
-                                                                        if(err) {
-                                                                            res.code = 500;
-                                                                            res.message = "Internal server error";
-                                                                            callback(null, res);
-                                                                        } else {
-                                                                            user.addUserActivity(msg.user_id,"New file uploaded",curr_date,function(activity_res){
-                                                                                res.code = 200;
-                                                                                res.message = "Success";
-                                                                                callback(null, res);
-                                                                            });
-                                                                        }     
+                                                    mongo.createGridStore(fileId,new_filename,'w',
+                                                    {
+                                                        root:'assets',content_type:msg.file.mimetype,chunk_size:msg.file.size
+                                                    }, function(err,gridStore){
+                                                        gridStore.open(function(err, gridStore) {
+                                                            gridStore.write(new Buffer(msg.buffer), function(err, gridResult) {
+                                                                if (err) {
+                                                                    gridStore.close(function(err, gridResult) {
+                                                                        res.code = 500;
+                                                                        res.message = "Error saving file to database";
+                                                                        callback(null, res);
                                                                     });
-                                                                });
-                                                            }
+                                                                } else {
+                                                                    gridStore.close(function(err, gridResult) {
+                                                                        var curr_date = new Date();
+                                                                        coll.insert({
+                                                                            owner_id:new ObjectId(msg.user_id),
+                                                                            is_directory:false,
+                                                                            created_date:curr_date,
+                                                                            is_deleted:false,
+                                                                            name:new_filename,
+                                                                            original_name:msg.file.originalname,
+                                                                            file_id:fileId,
+                                                                            parent_id:new ObjectId(result._id)
+                                                                        }, function(err,result){
+                                                                            if(err) {
+                                                                                res.code = 500;
+                                                                                res.message = "Internal server error";
+                                                                                callback(null, res);
+                                                                            } else {
+                                                                                user.addUserActivity(msg.user_id,"New file uploaded",curr_date,function(activity_res){
+                                                                                    res.code = 200;
+                                                                                    res.message = "Success";
+                                                                                    callback(null, res);
+                                                                                });
+                                                                            }     
+                                                                        });
+                                                                    });
+                                                                }
+                                                            })
                                                         })
                                                     })    
                                                 }
@@ -236,43 +240,47 @@ function addAsset(msg, callback){
                                 new_filename = [new_filename.substring(0, new_filename.lastIndexOf(".")), "(", count, ")",new_filename.substring(new_filename.lastIndexOf("."), new_filename.length)].join('');
                             }
                             var fileId = new ObjectId();
-                            var gridStore = new GridStore(mongo.getDb(), fileId, new_filename, 'w', {root:'assets',content_type:msg.file.mimetype,chunk_size:msg.file.size});
-                            gridStore.open(function(err, gridStore) {
-                                gridStore.write(new Buffer(msg.buffer), function(err, gridResult) {
-                                    if (err) {
-                                        gridStore.close(function(err, gridResult) {
-                                            res.code = 500;
-                                            res.message = "Error saving file to database";
-                                            callback(null, res);
-                                        });
-                                    } else {
-                                        gridStore.close(function(err, gridResult) {
-                                            var curr_date = new Date();
-                                            coll.insert({
-                                                owner_id:new ObjectId(msg.user_id),
-                                                is_directory:false,
-                                                created_date:curr_date,
-                                                is_deleted:false,
-                                                name:new_filename,
-                                                original_name:msg.file.originalname,
-                                                file_id:fileId
-                                            }, function(err,result){
-                                                if(err) {
-                                                    res.code = 500;
-                                                    res.message = "Internal server error";
-                                                    callback(null, res);
-                                                } else {
-                                                    user.addUserActivity(msg.user_id,"New file uploaded",curr_date,function(activity_res){
-                                                        res.code = 200;
-                                                        res.message = "Success";
-                                                        callback(null, res);
-                                                    });
-                                                }     
+                            mongo.createGridStore(fileId,new_filename,'w',
+                            {
+                                root:'assets',content_type:msg.file.mimetype,chunk_size:msg.file.size
+                            }, function(err,gridStore){
+                                gridStore.open(function(err, gridStore) {
+                                    gridStore.write(new Buffer(msg.buffer), function(err, gridResult) {
+                                        if (err) {
+                                            gridStore.close(function(err, gridResult) {
+                                                res.code = 500;
+                                                res.message = "Error saving file to database";
+                                                callback(null, res);
                                             });
-                                        });
-                                    }
-                                });
-                            });
+                                        } else {
+                                            gridStore.close(function(err, gridResult) {
+                                                var curr_date = new Date();
+                                                coll.insert({
+                                                    owner_id:new ObjectId(msg.user_id),
+                                                    is_directory:false,
+                                                    created_date:curr_date,
+                                                    is_deleted:false,
+                                                    name:new_filename,
+                                                    original_name:msg.file.originalname,
+                                                    file_id:fileId
+                                                }, function(err,result){
+                                                    if(err) {
+                                                        res.code = 500;
+                                                        res.message = "Internal server error";
+                                                        callback(null, res);
+                                                    } else {
+                                                        user.addUserActivity(msg.user_id,"New file uploaded",curr_date,function(activity_res){
+                                                            res.code = 200;
+                                                            res.message = "Success";
+                                                            callback(null, res);
+                                                        });
+                                                    }     
+                                                });
+                                            });
+                                        }
+                                    })
+                                })
+                            })
                         }
                     })
                 }
@@ -696,28 +704,24 @@ function downloadAsset(msg, callback){
                                     callback(null, res);
                                 } else {
                                     if(result){
-                                        var gridStore = new GridStore(mongo.getDb(), result.file_id, 'r',{root:'assets'});
-                                        gridStore.open(function(err, gridStore) {
-                                            gridStore.read(function(err, gridResult) {
-                                                if (err) {
-                                                    gridStore.close(function(err, result) {
-                                                        res.code = 500;
-                                                        res.message = "Error getting file from database";
-                                                        callback(null, res);
-                                                    });
-                                                } else {
-                                                    gridStore.close(function(err, result) {
-                                                        res.code = 200;
-                                                        res.message = "Success";
-                                                        res.data = {
-                                                            filename:gridStore.filename,
-                                                            content_type:gridStore.contentType,
-                                                            buffer:gridResult
-                                                        }
-                                                        callback(null, res);
-                                                    });
+                                        mongo.readGridFS(result.file_id,'r',
+                                        {
+                                            root:'assets'
+                                        }, function(err,gridResult){
+                                            if (err) {
+                                                res.code = 500;
+                                                res.message = "Error getting file from database";
+                                                callback(null, res);
+                                            } else {
+                                                res.code = 200;
+                                                res.message = "Success";
+                                                res.data = {
+                                                    filename:gridResult.filename,
+                                                    content_type:gridResult.contentType
                                                 }
-                                            })
+                                                res.buffer = gridResult.buffer;
+                                                callback(null, res);
+                                            }
                                         })
                                     } else {
                                         res.code = 400;
@@ -752,28 +756,24 @@ function downloadAsset(msg, callback){
                         callback(null, res);
                     } else {
                         if(result){
-                            var gridStore = new GridStore(mongo.getDb(), result.file_id, 'r',{root:'assets'});
-                            gridStore.open(function(err, gridStore) {
-                                gridStore.read(function(err, gridResult) {
-                                    if (err) {
-                                        gridStore.close(function(err, result) {
-                                            res.code = 500;
-                                            res.message = "Error getting file from database";
-                                            callback(null, res);
-                                        });
-                                    } else {
-                                        gridStore.close(function(err, result) {
-                                            res.code = 200;
-                                            res.message = "Success";
-                                            res.data = {
-                                                filename:gridStore.filename,
-                                                content_type:gridStore.contentType
-                                            }
-                                            res.buffer = gridResult;
-                                            callback(null, res);
-                                        });
+                            mongo.readGridFS(result.file_id,'r',
+                            {
+                                root:'assets'
+                            }, function(err,gridResult){
+                                if (err) {
+                                    res.code = 500;
+                                    res.message = "Error getting file from database";
+                                    callback(null, res);
+                                } else {
+                                    res.code = 200;
+                                    res.message = "Success";
+                                    res.data = {
+                                        filename:gridResult.filename,
+                                        content_type:gridResult.contentType
                                     }
-                                })
+                                    res.buffer = gridResult.buffer;
+                                    callback(null, res);
+                                }
                             })
                         } else {
                             res.code = 400;

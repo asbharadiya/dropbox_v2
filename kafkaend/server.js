@@ -6,6 +6,10 @@ var group = require('./services/group');
 var asset = require('./services/asset');
 
 var mongo = require('./services/mongo');
+mongo.createConnectionPool();
+
+var mongoWithDbPool = require('./services/mongoWithDbPool');
+mongoWithDbPool.connect();
 
 var CHUNK_SIZE = 100 * 1024;
 
@@ -93,6 +97,42 @@ function makeServiceCall(data){
             break;
         case 'getUserProfile':
             user.getUserProfile(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'getUserProfileWithoutPooling':
+            user.getUserProfileWithoutPooling(data.data, function(err,res){
+                var payloads = [
+                    {   
+                        topic: data.replyTo,
+                        messages:JSON.stringify({
+                            correlationId:data.correlationId,
+                            data : res
+                        }),
+                        partition : 0
+                    }
+                ];
+                producer.send(payloads, function(err, data){
+                    //console.log(data);
+                });
+                return;
+            });
+            break;
+        case 'getUserProfileWithDbPooling':
+            user.getUserProfileWithDbPooling(data.data, function(err,res){
                 var payloads = [
                     {   
                         topic: data.replyTo,

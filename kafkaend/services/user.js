@@ -1,9 +1,78 @@
 var mongo = require("./mongo");
+var mongoWithDbPool = require("./mongoWithDbPool");
 var ObjectId = require('mongodb').ObjectId;
+var MongoClient = require('mongodb').MongoClient;
+var mongoURL = require('./config').dbUrl;
 
 function getUserProfile(msg, callback){
     var res = {};
     mongo.getCollection('user', function(err,coll){
+        coll.findOne({_id:new ObjectId(msg._id)}, function(err,user){
+            if(err) {
+                res.code = 500;
+                res.message = "Internal server error";
+                callback(null, res);
+            } else {
+                if (user) {
+                    res.code = 200;
+                    res.message = "Success";
+                    res.data = {
+                        first_name:user.first_name,
+                        last_name:user.last_name,
+                        about:user.about,
+                        email:user.email,
+                        contact_no:user.contact_no,
+                        education:user.education,
+                        occupation:user.occupation
+                    };
+                    callback(null, res);
+                } else {
+                    res.code = 404;
+                    res.message = "User not found";
+                    callback(null, res);
+                }  
+            }     
+        });
+    })
+}
+
+function getUserProfileWithoutPooling(msg, callback){
+    var res = {};
+    MongoClient.connect(mongoURL, function(err, db){
+        if (err) { throw new Error('Could not connect: '+err); }
+        var coll = db.collection('user');
+        coll.findOne({_id:new ObjectId(msg._id)}, function(err,user){
+            if(err) {
+                res.code = 500;
+                res.message = "Internal server error";
+                callback(null, res);
+            } else {
+                if (user) {
+                    res.code = 200;
+                    res.message = "Success";
+                    res.data = {
+                        first_name:user.first_name,
+                        last_name:user.last_name,
+                        about:user.about,
+                        email:user.email,
+                        contact_no:user.contact_no,
+                        education:user.education,
+                        occupation:user.occupation
+                    };
+                    callback(null, res);
+                } else {
+                    res.code = 404;
+                    res.message = "User not found";
+                    callback(null, res);
+                }  
+            }     
+        })
+    })
+}
+
+function getUserProfileWithDbPooling(msg, callback){
+    var res = {};
+    mongoWithDbPool.getCollection('user', function(err,coll){
         coll.findOne({_id:new ObjectId(msg._id)}, function(err,user){
             if(err) {
                 res.code = 500;
@@ -137,6 +206,8 @@ function addUserActivity(user_id,action,timestamp,callback){
 }
 
 exports.getUserProfile = getUserProfile;
+exports.getUserProfileWithoutPooling = getUserProfileWithoutPooling;
+exports.getUserProfileWithDbPooling = getUserProfileWithDbPooling;
 exports.updateUserProfile = updateUserProfile;
 exports.getUserActivity = getUserActivity;
 exports.searchUsers = searchUsers;
