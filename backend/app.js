@@ -6,12 +6,18 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var http = require('http');
 
+var MongoClient = require('mongodb').MongoClient;
+
+var config = require('config');
+
 var fs = require('file-system');
 var dir = '../tmp';
 
 var passport = require('passport');
 
-var mongoSessionURL = require('./routes/config').dbUrl;
+var app = express();
+
+var mongoSessionURL = config.dbUrl;
 var expressSessions = require("express-session");
 var mongoStore = require("connect-mongo/es5")(expressSessions);
 
@@ -22,7 +28,15 @@ require('./routes/passport')(passport);
 var router = express.Router();
 require('./routes/router')(router,passport);
 
-var app = express();
+if(config.util.getEnv('NODE_ENV') === 'test'){
+  app.post('/clear_db', function(req,res) {
+    MongoClient.connect(mongoSessionURL, function(err, db){
+      if (err) { throw new Error('Could not connect: '+err); }
+      db.dropDatabase();
+      res.status(200).send();
+    });
+  });
+}
 
 var corsOptions = {
     origin: 'http://localhost:3000',
@@ -38,7 +52,7 @@ app.set('view engine', 'ejs');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser("CMPE273_passport"));

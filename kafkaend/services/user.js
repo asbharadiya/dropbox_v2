@@ -2,7 +2,9 @@ var mongo = require("./mongo");
 var mongoWithDbPool = require("./mongoWithDbPool");
 var ObjectId = require('mongodb').ObjectId;
 var MongoClient = require('mongodb').MongoClient;
-var mongoURL = require('./config').dbUrl;
+
+var config = require('config');
+var mongoURL = config.dbUrl;
 
 function getUserProfile(msg, callback){
     var res = {};

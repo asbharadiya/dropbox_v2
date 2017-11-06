@@ -1,5 +1,7 @@
 var MongoClient = require('mongodb').MongoClient;
-var mongoURL = require('./config').dbUrl;
+
+var config = require('config');
+var mongoURL = config.dbUrl;
 
 var db;
 var connected = false;

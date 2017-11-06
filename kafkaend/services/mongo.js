@@ -1,7 +1,8 @@
 var MongoClient = require('mongodb').MongoClient;
 var GridStore = require('mongodb').GridStore;
 
-var mongoURL = require('./config').dbUrl;
+var config = require('config');
+var mongoURL = config.dbUrl;
 
 var connected = false;
 

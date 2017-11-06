@@ -1,6 +1,8 @@
 var crypto = require('crypto');
 var conn = require('./connection');
-var kafkaResponseTopic = require('../config').kafkaResponseTopic;
+
+var config = require('config');
+var kafkaResponseTopic = config.kafkaResponseTopic;
 
 var KeyedMessage = require('kafka-node').KeyedMessage;
 

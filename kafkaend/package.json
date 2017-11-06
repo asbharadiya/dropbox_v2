@@ -3,14 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "test": "NODE_ENV=test node server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
   	"kafka-node": "^2.2.3",
     "mongodb": "^2.2.31",
-    "bcrypt": "^1.0.3"
+    "bcrypt": "^1.0.3",
+    "config": "^1.20.1"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"
