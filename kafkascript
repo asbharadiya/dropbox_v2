@@ -1,7 +1,30 @@
+Go to the extracted Kafka source location in your terminal and follow following steps
+
+## starting zookeeper and kafka server
+
+# For mac/linux
+
 bin/zookeeper-server-start.sh config/zookeeper.properties
 
 bin/kafka-server-start.sh config/server.properties
 
+# For windows
+
+bin/windows/zookeeper-server-start.bat config/zookeeper.properties
+
+bin/windows/kafka-server-start.bat config/server.properties
+
+
+## creating topics
+
+# For mac/linux
+
 bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic dropbox
 
 bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic response_topic
+
+# For windows
+
+bin/windows/kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic dropbox
+
+bin/windows/kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic response_topic
