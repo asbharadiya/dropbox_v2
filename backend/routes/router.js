@@ -17,6 +17,7 @@ module.exports = function(router,passport) {
 	router.get('/api/user_profile', isAuthenticated, user.getUserProfile);
 	router.get('/api/user_profile_without_pooling', isAuthenticated, user.getUserProfileWithoutPooling);
 	router.get('/api/user_profile_with_db_pooling', isAuthenticated, user.getUserProfileWithDbPooling);
+	router.get('/api/user_profile_without_kafka', isAuthenticated, user.getUserProfileWithoutKafka);
 	router.post('/api/user_profile', isAuthenticated, user.updateUserProfile);
 	router.get('/api/user_activity', isAuthenticated, user.getUserActivity);
 	router.get('/api/search_users', isAuthenticated, user.searchUsers);
@@ -40,6 +41,7 @@ module.exports = function(router,passport) {
 		if(req.session.passport && req.session.passport.user._id) {
 			next();
 	  	} else {
+	  		console.log(req.session);
 			res.status(401).send();
 		}
 	}
